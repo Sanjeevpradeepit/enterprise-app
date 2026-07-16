@@ -1,0 +1,5 @@
+import { useThemeContext } from './useThemeContext';
+
+export function useTheme() {
+  return useThemeContext();
+}
