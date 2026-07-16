@@ -703,3 +703,794 @@ This architecture separates responsibilities into dedicated modules:
 - **listeners/** → FCM token and message listeners
 
 This modular structure is scalable, maintainable, and well suited for enterprise React Native applications that use Firebase Cloud Messaging and local notifications.
+
+
+
+
+# Enterprise React Native Push Notification Architecture
+
+## Overview
+
+In an enterprise React Native application, push notification functionality should be isolated inside the **core** layer.
+
+Notification logic should **not** be implemented inside:
+
+- Authentication
+- Home
+- Chat
+- Job
+- Profile
+- Individual screens
+
+Notifications are a **cross-cutting concern** shared by the entire application.
+
+Benefits:
+
+- Single Responsibility Principle (SRP)
+- Easy to maintain
+- Easy to test
+- Reusable
+- Scalable
+- Enterprise-ready architecture
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+core/
+
+└── notification/
+
+    ├── constants.ts
+    ├── types.ts
+    ├── index.ts
+
+    ├── firebase.ts
+    ├── permissions.ts
+    ├── notification.service.ts
+    ├── push.service.ts
+    ├── device-token.service.ts
+
+    ├── handlers/
+
+    │   ├── foreground.ts
+    │   ├── background.ts
+    │   ├── opened.ts
+    │   └── initial.ts
+
+    └── listeners/
+
+        ├── token.listener.ts
+        └── message.listener.ts
+```
+
+---
+
+# Module Responsibilities
+
+## firebase.ts
+
+This file is a thin wrapper around **Firebase Cloud Messaging (FCM)**.
+
+It should contain **only Firebase SDK calls**.
+
+Responsibilities
+
+- Initialize Firebase
+- Get FCM Token
+- Delete FCM Token
+- Subscribe to Topic
+- Unsubscribe from Topic
+- Listen for foreground messages
+- Listen for token refresh
+- Listen for notification open events
+- Read the initial notification
+
+Example
+
+```ts
+initializeFirebase()
+
+getToken()
+
+deleteToken()
+
+subscribeTopic()
+
+unsubscribeTopic()
+
+onMessage()
+
+onTokenRefresh()
+
+onNotificationOpenedApp()
+
+getInitialNotification()
+```
+
+> **No business logic belongs here.**
+
+---
+
+## permissions.ts
+
+Responsible only for requesting notification permissions.
+
+Responsibilities
+
+- Request permission
+- Check current permission status
+
+Example
+
+```ts
+requestPermission()
+
+hasPermission()
+```
+
+Nothing else.
+
+---
+
+## device-token.service.ts
+
+Responsible only for storing the device's FCM token.
+
+The implementation can use MMKV.
+
+Responsibilities
+
+```ts
+saveToken()
+
+getToken()
+
+removeToken()
+```
+
+Example
+
+```text
+FCM Token
+
+↓
+
+MMKV Storage
+
+↓
+
+Read Later
+```
+
+No Firebase SDK code belongs here.
+
+---
+
+## push.service.ts
+
+Responsible only for local notifications.
+
+Uses **Notifee**.
+
+Responsibilities
+
+```text
+Create Notification Channel
+
+↓
+
+Show Notification
+
+↓
+
+Cancel Notification
+
+↓
+
+Cancel All Notifications
+
+↓
+
+Set Badge Count
+
+↓
+
+Clear Badge Count
+```
+
+Example
+
+```ts
+createChannel()
+
+show()
+
+cancel()
+
+cancelAll()
+
+setBadge()
+
+clearBadge()
+```
+
+No Firebase.
+
+No listeners.
+
+No API calls.
+
+Only local notification functionality.
+
+---
+
+# Handlers
+
+Handlers contain the application logic for notification events.
+
+---
+
+## foreground.ts
+
+Runs while the application is open.
+
+Flow
+
+```text
+FCM Message
+
+        │
+
+        ▼
+
+Display Notification
+
+        │
+
+        ▼
+
+Update Store
+
+        │
+
+        ▼
+
+Update Badge
+```
+
+Example
+
+```ts
+export async function handleForeground(message) {
+
+    await pushService.show(...);
+
+    unreadStore.increment();
+
+}
+```
+
+Responsibilities
+
+- Display local notification
+- Update Redux/Zustand
+- Increase unread count
+- Refresh badge
+
+---
+
+## background.ts
+
+Runs while the application is in the background.
+
+Flow
+
+```text
+FCM
+
+        │
+
+        ▼
+
+Cache Data
+
+        │
+
+        ▼
+
+Synchronize
+
+        │
+
+        ▼
+
+Display Notification
+```
+
+Responsibilities
+
+- Cache payload
+- Sync local data
+- Schedule notification
+- Refresh badge
+
+---
+
+## opened.ts
+
+Runs when the user taps a notification while the application is in the background.
+
+Flow
+
+```text
+Notification Tap
+
+        │
+
+        ▼
+
+Read Payload
+
+        │
+
+        ▼
+
+Navigate
+
+        │
+
+        ▼
+
+Open Screen
+```
+
+Possible destinations
+
+- Chat
+- Job
+- Profile
+- Notification Detail
+- Settings
+
+---
+
+## initial.ts
+
+Runs when the application was killed and launched by tapping a notification.
+
+Flow
+
+```text
+Killed Application
+
+        │
+
+        ▼
+
+Notification Tap
+
+        │
+
+        ▼
+
+Read Initial Notification
+
+        │
+
+        ▼
+
+Navigate
+```
+
+---
+
+# Listeners
+
+Listeners register Firebase events.
+
+---
+
+## token.listener.ts
+
+Registers the Firebase token refresh listener.
+
+Flow
+
+```text
+Firebase
+
+        │
+
+        ▼
+
+New Device Token
+
+        │
+
+        ▼
+
+Save Token
+
+        │
+
+        ▼
+
+Update Backend
+```
+
+Example
+
+```ts
+firebase.onTokenRefresh(token => {
+
+    deviceTokenService.saveToken(token);
+
+    api.updateDeviceToken(token);
+
+});
+```
+
+Responsibilities
+
+- Save new token
+- Replace old token
+- Notify backend
+
+---
+
+## message.listener.ts
+
+Registers the foreground message listener.
+
+Flow
+
+```text
+Firebase
+
+        │
+
+        ▼
+
+Foreground Message
+
+        │
+
+        ▼
+
+handleForeground()
+```
+
+Responsibilities
+
+- Listen for FCM messages
+- Delegate handling to `foreground.ts`
+
+---
+
+# notification.service.ts
+
+This is the **orchestrator**.
+
+It coordinates every notification component.
+
+It does **not** directly communicate with Firebase.
+
+Instead, it delegates responsibilities to specialized modules.
+
+Flow
+
+```text
+initialize()
+
+        │
+
+        ▼
+
+Permissions
+
+        │
+
+        ▼
+
+Firebase
+
+        │
+
+        ▼
+
+Save Device Token
+
+        │
+
+        ▼
+
+Register Listeners
+
+        │
+
+        ▼
+
+Register Handlers
+```
+
+Example
+
+```ts
+class NotificationService {
+
+    async initialize() {
+
+        await requestPermission();
+
+        await pushService.createChannel();
+
+        const token = await firebase.getToken();
+
+        await deviceTokenService.saveToken(token);
+
+        registerMessageListener();
+
+        registerTokenListener();
+
+        registerOpenedHandler();
+
+        registerInitialHandler();
+
+        registerBackgroundHandler();
+
+    }
+
+}
+```
+
+Notice:
+
+- No Firebase implementation
+- No Notifee implementation
+- No navigation logic
+
+Everything is delegated.
+
+---
+
+# Providers Initialization
+
+Notification initialization should happen **once** during application startup.
+
+```tsx
+useEffect(() => {
+
+    notificationService.initialize();
+
+}, []);
+```
+
+Nothing else is required inside Providers.
+
+---
+
+# Runtime Flow
+
+```text
+App Starts
+
+        │
+
+        ▼
+
+notificationService.initialize()
+
+        │
+
+        ├────────────────────┐
+        │                    │
+
+        ▼                    ▼
+
+Permission          Create Channel
+
+        │
+
+        ▼
+
+Retrieve FCM Token
+
+        │
+
+        ▼
+
+deviceTokenService.save()
+
+        │
+
+        ▼
+
+Update Backend
+
+        │
+
+        ▼
+
+Register Listeners
+
+        │
+
+ ┌──────┼───────────────┐
+
+ │      │               │
+
+ ▼      ▼               ▼
+
+Foreground Background Notification Tap
+
+ │           │               │
+
+ ▼           ▼               ▼
+
+Handler   Handler      Navigation
+```
+
+---
+
+# Backend Flow
+
+```text
+NestJS Notification Service
+
+            │
+
+            ▼
+
+Firebase Cloud Messaging
+
+            │
+
+            ▼
+
+Android / iOS Device
+
+            │
+
+            ▼
+
+firebase.ts
+
+            │
+
+            ▼
+
+message.listener.ts
+
+            │
+
+            ▼
+
+foreground.ts
+
+            │
+
+            ▼
+
+push.service.ts
+
+            │
+
+            ▼
+
+Display Notification
+```
+
+---
+
+# Notification Lifecycle
+
+```text
+Backend
+
+    │
+
+    ▼
+
+Firebase Cloud Messaging
+
+    │
+
+    ▼
+
+Device
+
+    │
+
+    ▼
+
+Firebase SDK
+
+    │
+
+    ▼
+
+Listener
+
+    │
+
+    ▼
+
+Handler
+
+    │
+
+    ▼
+
+Push Service
+
+    │
+
+    ▼
+
+Display Notification
+
+    │
+
+    ▼
+
+User Interaction
+
+    │
+
+    ▼
+
+Navigation
+```
+
+---
+
+# Single Responsibility Principle
+
+| File | Responsibility |
+|------|----------------|
+| **firebase.ts** | Firebase SDK wrapper (tokens, topics, message streams) |
+| **permissions.ts** | Notification permission management |
+| **push.service.ts** | Local notifications (Notifee) |
+| **device-token.service.ts** | Persist the FCM token locally |
+| **foreground.ts** | Handle notifications while the app is active |
+| **background.ts** | Handle background notifications |
+| **opened.ts** | Handle notification taps while the app is running/background |
+| **initial.ts** | Handle app launch from a notification |
+| **message.listener.ts** | Register foreground message listener |
+| **token.listener.ts** | Register token refresh listener |
+| **notification.service.ts** | Orchestrate initialization and wire all components together |
+
+---
+
+# Enterprise Best Practices
+
+- Initialize notification services only once.
+- Keep Firebase-specific code isolated.
+- Keep Notifee-specific code isolated.
+- Store the FCM token separately from authentication tokens.
+- Delegate notification handling to dedicated handlers.
+- Keep listeners responsible only for subscribing to events.
+- Use the notification service as the single orchestration point.
+- Keep feature modules independent of notification implementation.
+- Handle navigation centrally instead of inside Firebase callbacks.
+- Synchronize refreshed FCM tokens with the backend.
+
+---
+
+# Summary
+
+This architecture provides a clean separation of concerns:
+
+- **firebase.ts** → Firebase Cloud Messaging integration
+- **permissions.ts** → Notification permission handling
+- **device-token.service.ts** → Local FCM token storage
+- **push.service.ts** → Local notifications using Notifee
+- **handlers/** → Business logic for notification events
+- **listeners/** → Firebase event registration
+- **notification.service.ts** → Coordinates initialization and application-wide notification setup
+
+This design follows the **Single Responsibility Principle**, is easy to test, and scales well for enterprise React Native applications.

@@ -1,24 +1,58 @@
-import { PermissionsAndroid, Platform } from 'react-native';
+import {
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
-import { androidVersion, isIOS } from '../../utils/platform';
 
-export async function requestNotificationPermission() {
-  if (isIOS) {
-    const status = await messaging().requestPermission();
+export class NotificationPermissionService {
+  async requestPermission() {
+    if (Platform.OS === 'ios') {
+      const status =
+        await messaging().requestPermission();
 
-    return (
-      status === messaging.AuthorizationStatus.AUTHORIZED ||
-      status === messaging.AuthorizationStatus.PROVISIONAL
-    );
+      return (
+        status ===
+          messaging.AuthorizationStatus.AUTHORIZED ||
+        status ===
+          messaging.AuthorizationStatus.PROVISIONAL
+      );
+    }
+
+    if (
+      Platform.OS === 'android' &&
+      Number(Platform.Version) >= 33
+    ) {
+      const result =
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS
+            .POST_NOTIFICATIONS,
+        );
+
+      return (
+        result ===
+        PermissionsAndroid.RESULTS.GRANTED
+      );
+    }
+
+    return true;
   }
 
-  if (androidVersion >= 33) {
-    const result = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-    );
+  async hasPermission() {
+    if (Platform.OS === 'ios') {
+      const status =
+        await messaging().hasPermission();
 
-    return result === PermissionsAndroid.RESULTS.GRANTED;
+      return (
+        status ===
+          messaging.AuthorizationStatus.AUTHORIZED ||
+        status ===
+          messaging.AuthorizationStatus.PROVISIONAL
+      );
+    }
+
+    return true;
   }
-
-  return true;
 }
+
+export const permissionService =
+  new NotificationPermissionService();

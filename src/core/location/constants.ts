@@ -1,0 +1,35 @@
+export const LOCATION = {
+  DISTANCE_FILTER: 10, // meters
+
+  INTERVAL: 10000, // 10 seconds
+
+  FASTEST_INTERVAL: 5000,
+
+  TIMEOUT: 15000,
+
+  MAXIMUM_AGE: 10000,
+
+  ENABLE_HIGH_ACCURACY: true,
+} as const;
+
+export const LOCATION_STORAGE_KEYS = {
+  LAST_LOCATION: 'last_location',
+
+  PENDING_LOCATIONS: 'pending_locations',
+} as const;
+
+export const LOCATION_PERMISSION = {
+  FOREGROUND: 'FOREGROUND',
+
+  BACKGROUND: 'BACKGROUND',
+} as const;
+
+export const LOCATION_EVENT = {
+  LOCATION_CHANGED: 'LOCATION_CHANGED',
+
+  LOCATION_ERROR: 'LOCATION_ERROR',
+
+  GEOFENCE_ENTER: 'GEOFENCE_ENTER',
+
+  GEOFENCE_EXIT: 'GEOFENCE_EXIT',
+} as const;

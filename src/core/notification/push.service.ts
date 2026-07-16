@@ -1,38 +1,55 @@
-import {
-  registerDevice,
-  onForegroundMessage,
-  onTokenRefresh,
-} from './firebase';
+import notifee, {
+  AndroidImportance,
+} from '@notifee/react-native';
 
-import { requestNotificationPermission } from './permissions';
+import { NOTIFICATION_CHANNEL } from './constants';
 
 class PushService {
-  async initialize() {
-    const granted = await requestNotificationPermission();
-
-    if (!granted) {
-      console.log('Notification permission denied');
-      return;
-    }
-
-    const token = await registerDevice();
-
-    console.log('FCM:', token);
-
-    onForegroundMessage(message => {
-      console.log('Foreground Notification', message);
-    });
-
-    onTokenRefresh(token => {
-      console.log('New Token', token);
-
-      // Upload new token to backend
+  async createChannel() {
+    await notifee.createChannel({
+      id: NOTIFICATION_CHANNEL.DEFAULT,
+      name: 'Default',
+      importance: AndroidImportance.HIGH,
     });
   }
 
-  async getToken() {
-    return registerDevice();
+  async show(
+  title: string | object | undefined,
+  body: string | object | undefined,
+) {
+  await notifee.displayNotification({
+    title:
+      typeof title === 'string'
+        ? title
+        : 'Notification',
+
+    body:
+      typeof body === 'string'
+        ? body
+        : '',
+
+    android: {
+      channelId: NOTIFICATION_CHANNEL.DEFAULT,
+    },
+  });
+}
+
+  async cancel(id: string) {
+    await notifee.cancelNotification(id);
+  }
+
+  async cancelAll() {
+    await notifee.cancelAllNotifications();
+  }
+
+  async setBadge(count: number) {
+    await notifee.setBadgeCount(count);
+  }
+
+  async clearBadge() {
+    await notifee.setBadgeCount(0);
   }
 }
 
-export const pushService = new PushService();
+export const pushService =
+  new PushService();

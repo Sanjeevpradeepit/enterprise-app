@@ -1,0 +1,6 @@
+export const NETWORK_EVENT = {
+  CONNECTED: 'CONNECTED',
+  DISCONNECTED: 'DISCONNECTED',
+} as const;
+
+export const NETWORK_TIMEOUT = 15000;

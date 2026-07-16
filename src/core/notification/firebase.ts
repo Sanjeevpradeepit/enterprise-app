@@ -1,23 +1,54 @@
-import messaging from '@react-native-firebase/messaging';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 
-export async function registerDevice(): Promise<string | null> {
-  try {
-    const token = await messaging().getToken();
+class FirebaseService {
+  async getToken(): Promise<string | null> {
+    try {
+      return await messaging().getToken();
+    } catch (e) {
+      console.error('FCM Token Error', e);
+      return null;
+    }
+  }
 
-    console.log('FCM Token:', token);
+  async deleteToken() {
+    await messaging().deleteToken();
+  }
 
-    return token;
-  } catch (error) {
-    console.error(error);
+  async subscribeTopic(topic: string) {
+    await messaging().subscribeToTopic(topic);
+  }
 
-    return null;
+  async unsubscribeTopic(topic: string) {
+    await messaging().unsubscribeFromTopic(topic);
+  }
+
+  onMessage(
+    callback: (
+      message: FirebaseMessagingTypes.RemoteMessage,
+    ) => void,
+  ) {
+    return messaging().onMessage(callback);
+  }
+
+  onTokenRefresh(
+    callback: (token: string) => void,
+  ) {
+    return messaging().onTokenRefresh(callback);
+  }
+
+  onNotificationOpenedApp(
+    callback: (
+      message: FirebaseMessagingTypes.RemoteMessage,
+    ) => void,
+  ) {
+    return messaging().onNotificationOpenedApp(callback);
+  }
+
+  getInitialNotification() {
+    return messaging().getInitialNotification();
   }
 }
 
-export function onForegroundMessage(callback: (message: any) => void) {
-  return messaging().onMessage(callback);
-}
-
-export function onTokenRefresh(callback: (token: string) => void) {
-  return messaging().onTokenRefresh(callback);
-}
+export const firebaseService = new FirebaseService();
