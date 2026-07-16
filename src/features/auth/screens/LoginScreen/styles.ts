@@ -14,6 +14,28 @@ export const createStyles = (theme: AppTheme) =>
       marginBottom: theme.spacing.xxl,
     },
 
+    biometricButton: {
+      height: 56,
+      borderRadius: theme.radius.lg,
+
+      marginTop: theme.spacing.md,
+
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+
+      backgroundColor: theme.colors.surface,
+    },
+
+    biometricText: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+
     registerText: {
       marginTop: theme.spacing.lg,
       textAlign: 'center',
