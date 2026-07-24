@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { requestNotificationPermission } from '../core/notification';
-
+import { permissionService } from '@/platform/notification';
 
 export function usePermission() {
-  const [granted, setGranted] =
-    useState(false);
+  const [granted, setGranted] = useState(false);
 
   const requestNotifications = async () => {
-    const result =
-      await requestNotificationPermission();
+    const result = await permissionService.requestPermission();
 
     setGranted(result);
 

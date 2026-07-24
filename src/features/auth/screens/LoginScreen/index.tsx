@@ -7,9 +7,9 @@ import { Fingerprint } from 'lucide-react-native';
 
 import { createStyles } from './styles';
 import { RootStackParamList } from '@/app/navigation/types';
-import { useBiometric } from '@/core/biometric';
+import { useBiometric } from '@/platform/biometric';
 import { useAppTheme } from '@/app/theme';
-import { Screen } from '@/components/Screen';
+import { Screen } from '@/shared/components/Screen';
 
 export function LoginScreen() {
   const theme = useAppTheme();

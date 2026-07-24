@@ -1,5 +1,5 @@
+import { otaListener, OTAStatus } from '@/platform/ota';
 import { useEffect, useState } from 'react';
-import { otaListener, OTAStatus } from '../core/ota';
 
 export function useOTA() {
   const [status, setStatus] = useState(OTAStatus.IDLE);

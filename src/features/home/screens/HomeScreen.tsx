@@ -1,10 +1,11 @@
+import { Screen } from '@/shared/components/Screen';
 import React from 'react';
 import { View, Text } from 'react-native';
 
 export function HomeScreen() {
   return (
-    <View>
+    <Screen>
       <Text>Home Screen</Text>
-    </View>
+    </Screen>
   );
 }

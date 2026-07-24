@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useOTA } from '../../hooks/useOTA';
-import { OTAStatus } from '../../core/ota';
+import { OTAStatus } from '@/platform/ota';
 
 
 export function OTAIndicator() {

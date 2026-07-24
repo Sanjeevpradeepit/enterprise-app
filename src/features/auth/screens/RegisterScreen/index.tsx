@@ -11,9 +11,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { createStyles } from './styles';
 import { useAppTheme } from '@/app/theme';
-import { Screen } from '@/components/Screen';
 
 import type { RootStackParamList } from '@/app/navigation/types';
+import { Screen } from '@/shared/components/Screen';
 
 export function RegisterScreen() {
   const theme = useAppTheme();

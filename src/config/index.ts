@@ -1,5 +1,5 @@
 export * from './env';
 export * from './api';
-export * from './constants';
+export * from '../shared/constants/constants';
 export * from './featureFlags';
-export * from './permissions';
+export * from '../shared/constants/permissions';

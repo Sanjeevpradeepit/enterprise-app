@@ -13,7 +13,7 @@ import {
 
 import {
   androidVersion,
-} from '@/utils/platform';
+} from '@/shared/utils/platform';
 
 class PermissionService {
   async requestForegroundPermission() {
