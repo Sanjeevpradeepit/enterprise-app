@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { Icon } from '@/design-system/icons';
 import { HomeScreen } from '@/features/home/screens/HomeScreen';
-import { ProfileScreen } from '@/features/home/screens/ProfileScreen';
+import { ProfileScreen } from '@/features/profile/screens/profileScreen';
 
 export type BottomTabParamList = {
   Home: undefined;
